@@ -1,13 +1,16 @@
+# Contributor: ChugunovRoman <Zebs-BMK@yandex.ru>
+# Contributor: PedroHLC <root@pedrohlc.com>
+
 pkgname="figma-linux"
 pkgver="0.7.1"
-pkgrel="2"
-pkgdesc="The collaborative interface design tool. Unofficial Figma desktop client for Linux"
+pkgrel="3"
+pkgdesc="The collaborative interface design tool. Unofficial Figma desktop client for Linux + system-wide electron"
 arch=("x86_64")
 url="https://github.com/Figma-Linux/figma-linux"
 license=('GPL2')
 conflicts=("figma-bin")
 replaces=("figma-bin")
-source=("https://github.com/Figma-Linux/figma-linux/releases/download/v${pkgver}/figma-linux-${pkgver}.zip"
+source=("https://github.com/Figma-Linux/figma-linux/archive/v${pkgver}.tar.gz"
         "figma-linux.desktop"
         "24x24.png"
         "36x36.png"
@@ -20,10 +23,10 @@ source=("https://github.com/Figma-Linux/figma-linux/releases/download/v${pkgver}
         "256x256.png"
         "384x384.png"
         "512x512.png")
-makedepends=("unzip")
-noextract=("figma-linux-${pkgver}.zip")
-sha256sums=("75e8e1c2a4686dc429bdd82aac0a70cb1a63eb1b976cec213b4f306c086e611b"
-            "21def936e0a912743e4f6b5832b7c59ff5437538f93b372ff1f2949d35579dc4"
+depends=('electron')
+makedepends=('nodejs' 'rust')
+sha256sums=("f68af043cb7873db7f79795c350810a2474e2f701bc0bd209b17a15a86d088de"
+            "8ec0db0813fb20c1f22450505fb17a89d73013e2e81960ce83c1f8fe645a8259"
             "c94eaaf01a82688ab7951ea1d1085f50c3ebed588993d68c173139db848b21c6"
             "40b456b40c557395b1d9cedd035c7d14a169f8207d60441177e1f3c0582768da"
             "72d0c9df5b81a7666a05751a38fe096f629096be73792355f6069024cf7c0412"
@@ -35,9 +38,27 @@ sha256sums=("75e8e1c2a4686dc429bdd82aac0a70cb1a63eb1b976cec213b4f306c086e611b"
             "1db635df7d84f73694303eba423acd75da892e084cf35c4e260bd5c6b56fcc1e"
             "5dc381da3bb02e5bc9d60cdbae3e3c5c8f249a83b4ef606721bb87559d0a122b"
             "e77bf9e7c699a53e69ba4a025e31ccf2b0a3b4c86acc842f7d0ecf1f8fe71ac2")
+options=(!strip)
+
+prepare() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  npm install
+}
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  npm rebuild node-sass
+  npx --no-install electron-webpack app
+
+  cp package-lock.json dist/
+  cp -r node_modules dist/
+  cd dist
+  npm install
+  npm prune
+}
 
 package() {
-  cd "${srcdir}"
+  cd "${srcdir}/${pkgname}-${pkgver}"
 
   install -D "${srcdir}"/figma-linux.desktop "${pkgdir}"/usr/share/applications/figma-linux.desktop
   install -D "${srcdir}"/256x256.png "${pkgdir}"/usr/share/pixmaps/figma-linux.png
@@ -47,9 +68,8 @@ package() {
                "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps/figma-linux.png"
   done
 
-  mkdir -p "${pkgdir}/opt/${pkgname}"
-  unzip -q "figma-linux-${pkgver}.zip" -d "${pkgdir}/opt/${pkgname}"
+  install -d "${pkgdir}/opt/${pkgname}"
 
-  mkdir -p "${pkgdir}/usr/bin"
-  ln -s "/opt/${pkgname}/figma-linux" "${pkgdir}/usr/bin/figma-linux"
+  cd dist
+  cp -dr --no-preserve=ownership -t "${pkgdir}/opt/${pkgname}" * 
 }
