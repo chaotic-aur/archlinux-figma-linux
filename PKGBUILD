@@ -13,7 +13,7 @@ replaces=("figma-bin")
 source=("https://github.com/Figma-Linux/figma-linux/archive/v${pkgver}.tar.gz"
         "figma-linux.desktop")
 depends=('electron' 'gtk3' 'xdg-utils' 'libxss' 'nss' 'nspr')
-makedepends=('nodejs' 'rust')
+makedepends=('npm' 'rust' 'python2')
 optdepends=('libappindicator-gtk3')
 sha256sums=("f68af043cb7873db7f79795c350810a2474e2f701bc0bd209b17a15a86d088de"
             "8ec0db0813fb20c1f22450505fb17a89d73013e2e81960ce83c1f8fe645a8259")
